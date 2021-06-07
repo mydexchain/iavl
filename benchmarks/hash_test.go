@@ -7,7 +7,7 @@ import (
 	"hash"
 	"testing"
 
-	"github.com/soomindae/iavl"
+	"github.com/mydexchain/iavl"
 
 	_ "crypto/sha256"
 

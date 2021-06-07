@@ -284,7 +284,10 @@ func (tree *MutableTree) LazyLoadVersion(targetVersion int64) (int64, error) {
 
 	// no versions have been saved if the latest version is non-positive
 	if latestVersion <= 0 {
-		return 0, nil
+		if targetVersion <= 0 {
+			return 0, nil
+		}
+		return 0, fmt.Errorf("no versions found while trying to load %v", targetVersion)
 	}
 
 	// default to the latest version if the targeted version is non-positive
@@ -323,7 +326,10 @@ func (tree *MutableTree) LoadVersion(targetVersion int64) (int64, error) {
 	}
 
 	if len(roots) == 0 {
-		return 0, nil
+		if targetVersion <= 0 {
+			return 0, nil
+		}
+		return 0, fmt.Errorf("no versions found while trying to load %v", targetVersion)
 	}
 
 	firstVersion := int64(0)
@@ -534,23 +540,51 @@ func (tree *MutableTree) SetInitialVersion(version uint64) {
 	tree.ndb.opts.InitialVersion = version
 }
 
-// DeleteVersions deletes a series of versions from the MutableTree. An error
-// is returned if any single version is invalid or the delete fails. All writes
-// happen in a single batch with a single commit.
+// DeleteVersions deletes a series of versions from the MutableTree.
+// Deprecated: please use DeleteVersionsRange instead.
 func (tree *MutableTree) DeleteVersions(versions ...int64) error {
 	debug("DELETING VERSIONS: %v\n", versions)
 
+	if len(versions) == 0 {
+		return nil
+	}
+
+	sort.Slice(versions, func(i, j int) bool {
+		return versions[i] < versions[j]
+	})
+
+	// Find ordered data and delete by interval
+	intervals := map[int64]int64{}
+	var fromVersion int64
 	for _, version := range versions {
-		if err := tree.deleteVersion(version); err != nil {
+		if version-fromVersion != intervals[fromVersion] {
+			fromVersion = version
+		}
+		intervals[fromVersion]++
+	}
+
+	for fromVersion, sortedBatchSize := range intervals {
+		if err := tree.DeleteVersionsRange(fromVersion, fromVersion+sortedBatchSize); err != nil {
 			return err
 		}
+	}
+
+	return nil
+}
+
+// DeleteVersionsRange removes versions from an interval from the MutableTree (not inclusive).
+// An error is returned if any single version has active readers.
+// All writes happen in a single batch with a single commit.
+func (tree *MutableTree) DeleteVersionsRange(fromVersion, toVersion int64) error {
+	if err := tree.ndb.DeleteVersionsRange(fromVersion, toVersion); err != nil {
+		return err
 	}
 
 	if err := tree.ndb.Commit(); err != nil {
 		return err
 	}
 
-	for _, version := range versions {
+	for version := fromVersion; version < toVersion; version++ {
 		delete(tree.versions, version)
 	}
 

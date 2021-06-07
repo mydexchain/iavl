@@ -13,7 +13,7 @@ import (
 // 0.13 database was written with KeepEvery:1 (the default) or the last version _ever_ saved to the
 // tree was a multiple of `KeepEvery` and thus saved to disk, this repair is not necessary.
 //
-// Note that this cannot be used directly on Chain SDK databases, since they store multiple IAVL
+// Note that this cannot be used directly on Cosmos SDK databases, since they store multiple IAVL
 // trees in the same underlying database via a prefix scheme.
 //
 // The pruning functionality enabled with Options.KeepEvery > 1 would write orphans entries to disk
@@ -41,7 +41,7 @@ func Repair013Orphans(db dbm.DB) (uint64, error) {
 	)
 	batch := db.NewBatch()
 	defer batch.Close()
-	ndb.traverseRange(orphanKeyFormat.Key(version), orphanKeyFormat.Key(math.MaxInt64), func(k, v []byte) {
+	ndb.traverseRange(orphanKeyFormat.Key(version), orphanKeyFormat.Key(int64(math.MaxInt64)), func(k, v []byte) {
 		// Sanity check so we don't remove stuff we shouldn't
 		var toVersion int64
 		orphanKeyFormat.Scan(k, &toVersion)
