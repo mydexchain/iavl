@@ -13,7 +13,7 @@ import (
 // 0.13 database was written with KeepEvery:1 (the default) or the last version _ever_ saved to the
 // tree was a multiple of `KeepEvery` and thus saved to disk, this repair is not necessary.
 //
-// Note that this cannot be used directly on Cosmos SDK databases, since they store multiple IAVL
+// Note that this cannot be used directly on Chain SDK databases, since they store multiple IAVL
 // trees in the same underlying database via a prefix scheme.
 //
 // The pruning functionality enabled with Options.KeepEvery > 1 would write orphans entries to disk

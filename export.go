@@ -8,7 +8,7 @@ import (
 
 // exportBufferSize is the number of nodes to buffer in the exporter. It improves throughput by
 // processing multiple nodes per context switch, but take care to avoid excessive memory usage,
-// especially since callers may export several IAVL stores in parallel (e.g. the Cosmos SDK).
+// especially since callers may export several IAVL stores in parallel (e.g. the Chain SDK).
 const exportBufferSize = 32
 
 // ExportDone is returned by Exporter.Next() when all items have been exported.

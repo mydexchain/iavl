@@ -10,7 +10,7 @@ import (
 	tmdb "github.com/mydexchain/tm-db"
 )
 
-// stores is the list of stores in the CosmosHub database
+// stores is the list of stores in the ChainHub database
 // FIXME would be nice to autodetect this
 var stores = []string{
 	"acc",
@@ -99,7 +99,7 @@ func runExport(dbPath string) (int64, map[string][]*iavl.ExportNode, error) {
 	if err != nil {
 		return 0, nil, err
 	}
-	fmt.Printf("Exporting cosmoshub database at version %v\n\n", version)
+	fmt.Printf("Exporting ChainHub database at version %v\n\n", version)
 
 	exports := make(map[string][]*iavl.ExportNode, len(stores))
 
